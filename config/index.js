@@ -13,6 +13,17 @@ const config = {
       pass: process.env.DB_PASS,
       name: process.env.DB_NAME
     }
+  },
+  user: {
+    admin_pass: process.env.DEFAULT_ADMIN_PASSWORD,
+    user_pass: process.env.DEFAULT_USER_PASSWORD
+  },
+  auth: {
+    jwt_secret: process.env.AUTH_JWT_SECRET
+  },
+  api: {
+    public_token: process.env.PUBLIC_API_KEY_TOKEN,
+    admin_token: process.env.ADMIN_API_KEY_TOKEN
   }
 }
 

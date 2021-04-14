@@ -1,20 +1,28 @@
 const express = require('express')
+const passport = require('passport')
 const MoviesService = require('../../services/movies')
 const {
-  idSchema,
+  idMovieSchema,
   createSchemaMovie,
   updateSchemaMovie
 } = require('../../lib/schemas/movie')
 const validation = require('../middlewares/validationHandlers')
+const validationScope = require('../middlewares/validationScopesHandler')
 const cacheResponse = require('../../utils/cache/response')
 const { FIVE_MINUTES } = require('../../utils/cache/times')
+
+// JWT Strategy
+require('../../utils/auth/strategies/jwt')
 
 const moviesApi = (app) => {
   const router = express.Router()
   const moviesService = new MoviesService()
-  app.use('/api/movies', router)
+  app.use('/api/movies', passport.authenticate('jwt', { session: false }), router)
 
-  router.get('/', async (req, res, next) => {
+  router.get(
+    '/',
+    validationScope(['read:movies']),
+    async (req, res, next) => {
     cacheResponse(res, FIVE_MINUTES)
     const { tags } = req.query
     try {
@@ -27,7 +35,12 @@ const moviesApi = (app) => {
       next(err)
     }
   })
-  router.get('/:id', validation({id: idSchema}, 'params'), async (req, res, next) => {
+
+  router.get(
+    '/:id',
+    validationScope(['read:movies']),
+    validation({id: idMovieSchema}, 'params'),
+    async (req, res, next) => {
     cacheResponse(res, FIVE_MINUTES)
     try {
       const id = req.params.id
@@ -40,7 +53,12 @@ const moviesApi = (app) => {
       next(err)
     }
   })
-  router.post('/', validation(createSchemaMovie), async (req, res, next) => {
+
+  router.post(
+    '/',
+    validationScope(['create:movies']),
+    validation(createSchemaMovie),
+    async (req, res, next) => {
     try {
       const movie = req.body
       const movieId = await moviesService.createMovie({ movie })
@@ -52,7 +70,13 @@ const moviesApi = (app) => {
       next(err)
     }
   })
-  router.put('/:id',validation({id: idSchema}, 'params'), validation(updateSchemaMovie), async (req, res, next) => {
+
+  router.put(
+    '/:id',
+    validationScope(['update:movies']),
+    validation({id: idMovieSchema}, 'params'),
+    validation(updateSchemaMovie),
+    async (req, res, next) => {
     try {
       const id = req.params.id
       const data = req.body
@@ -65,7 +89,10 @@ const moviesApi = (app) => {
       next(err)
     }
   })
-  router.patch('/:id', async (req, res, next) => {
+
+  router.patch(
+    '/:id',
+    async (req, res, next) => {
     try {
       const id = req.params.id
       const data = req.body
@@ -78,7 +105,12 @@ const moviesApi = (app) => {
       next(err)
     }
   })
-  router.delete('/:id', validation({id: idSchema}, 'params'), async (req, res, next) => {
+
+  router.delete(
+    '/:id',
+    validationScope(['delete:movies']),
+    validation({id: idMovieSchema}, 'params'),
+    async (req, res, next) => {
     try {
       const id = req.params.id
       const movieId = await moviesService.deleteMovie({ id })

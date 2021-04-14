@@ -1,10 +1,20 @@
+// Express
 const express = require('express')
-const config = require('./config')
+// Helmet
+const helmet = require('helmet')
+
+// Imported routes
 const moviesRoute = require('./controllers/routes/movies')
+const userMoviesRoute = require('./controllers/routes/userMovies')
+const authAPIRoute = require('./controllers/routes/auth')
+
+// Imported Middlewares
 const { logErrors, errors, wrapErrors } = require('./controllers/middlewares/errorsHandler')
 const notFoundPage = require('./controllers/middlewares/notFoundHandler')
+
+// Config
+const config = require('./config')
 const { port } = config.server
-const debug = require('debug')('app:server')
 
 // App
 const app = express()
@@ -12,9 +22,13 @@ const app = express()
 // Parser data
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
+app.use(helmet())
 
 // Routes
+authAPIRoute(app)
 moviesRoute(app)
+userMoviesRoute(app)
+
 // Catch 404
 app.use(notFoundPage)
 
@@ -25,5 +39,5 @@ app.use(errors)
 
 // Server
 app.listen(port, () => {
-  debug(`Listening in http://localhost:${port}`)
+  console.log(`Listening in http://localhost:${port}`)
 })
